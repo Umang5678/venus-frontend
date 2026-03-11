@@ -12,9 +12,11 @@ export default function AddProductPage() {
   const [category, setCategory] = useState("");
   const [size, setSize] = useState<string[]>([]);
   const [price, setPrice] = useState<number | "">("");
+  const [discount, setDiscount] = useState<number | "">("");
   const [stock, setStock] = useState<number | "">("");
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [occasion, setOccasion] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,8 +46,10 @@ export default function AddProductPage() {
     form.append("description", description);
     form.append("category", category);
     form.append("price", String(price));
+    form.append("discount", String(discount || 0));
     form.append("stock", String(stock || 0));
     form.append("size", JSON.stringify(size));
+    form.append("occasion", JSON.stringify(occasion));
     images.forEach((file) => form.append("images", file));
 
     try {
@@ -124,6 +128,52 @@ export default function AddProductPage() {
               </select>
             </div>
 
+            {/* Occasion */}
+<div>
+  <label className="block mb-2 font-semibold text-gray-800">
+    Occasion
+  </label>
+
+  <div className="flex flex-wrap gap-3">
+    {[
+      "WORK WEAR",
+      "SUMMER MOMENTS",
+      "EVERYDAY EASE",
+      "COTTON DAYS",
+      "MEHENDI",
+      "HALDI",
+      "SANGEET",
+      "THE SHAADI EDIT",
+      "FESTIVE COLLECTION",
+      "GIFTING",
+      "NEW IN",
+      "BEST SELLER",
+    ].map((o) => (
+      <label
+        key={o}
+        className={`px-4 py-2 rounded-full cursor-pointer border ${
+          occasion.includes(o)
+            ? "bg-purple-600 text-white border-purple-600"
+            : "border-purple-300 hover:bg-purple-100"
+        } transition`}
+      >
+        <input
+          type="checkbox"
+          value={o}
+          checked={occasion.includes(o)}
+          onChange={(e) =>
+            e.target.checked
+              ? setOccasion([...occasion, o])
+              : setOccasion(occasion.filter((item) => item !== o))
+          }
+          className="hidden"
+        />
+        {o}
+      </label>
+    ))}
+  </div>
+</div>
+
             {/* Sizes */}
             <div>
               <label className="block mb-2 font-semibold text-gray-800">
@@ -155,9 +205,8 @@ export default function AddProductPage() {
                 ))}
               </div>
             </div>
-
-            {/* Price & Stock */}
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-3 gap-6">
+              {/* Price */}
               <div>
                 <label className="block mb-1 font-semibold text-gray-800">
                   Price (₹)
@@ -171,6 +220,30 @@ export default function AddProductPage() {
                 />
               </div>
 
+              {/* Discount */}
+              <div>
+                <label className="block mb-1 font-semibold text-gray-800">
+                  Discount (%)
+                </label>
+
+                <input
+                  type="number"
+                  value={discount}
+                  onChange={(e) => setDiscount(Number(e.target.value))}
+                  placeholder="0"
+                  className="w-full border border-pink-200 rounded-xl p-3 focus:ring-2 focus:ring-pink-400 focus:outline-none"
+                />
+
+                {/* ⭐ Live Final Price Preview */}
+                {price && discount !== "" && (
+                  <p className="text-sm text-green-600 mt-1">
+                    Final Price: ₹
+                    {Math.round(price - (price * Number(discount)) / 100)}
+                  </p>
+                )}
+              </div>
+
+              {/* Stock */}
               <div>
                 <label className="block mb-1 font-semibold text-gray-800">
                   Stock
@@ -184,7 +257,6 @@ export default function AddProductPage() {
                 />
               </div>
             </div>
-
             {/* Image Upload */}
             <div>
               <label className="block mb-2 font-semibold text-gray-800">

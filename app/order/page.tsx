@@ -8,6 +8,7 @@ interface OrderItem {
   price: number;
   quantity: number;
   image?: string;
+  size?: string;
 }
 
 interface Order {
@@ -133,6 +134,10 @@ export default function AdminOrders() {
                             <p className="text-sm text-gray-600">
                               {" "}
                               Qty: {item.quantity}{" "}
+                            </p>{" "}
+                            <p className="text-sm text-gray-600">
+                              {" "}
+                              Size: {item.size}{" "}
                             </p>{" "}
                           </div>{" "}
                         </div>{" "}
