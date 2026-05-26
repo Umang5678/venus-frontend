@@ -10,7 +10,7 @@ export default function AddProductPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [size, setSize] = useState<string[]>([]);
+  const [size, setSize] = useState<{ size: string; stock: number }[]>([]);
   const [price, setPrice] = useState<number | "">("");
   const [discount, setDiscount] = useState<number | "">("");
   const [stock, setStock] = useState<number | "">("");
@@ -41,13 +41,17 @@ export default function AddProductPage() {
       return;
     }
 
+    const finalStock = size.length > 0
+      ? size.reduce((acc, curr) => acc + curr.stock, 0)
+      : Number(stock || 0);
+
     const form = new FormData();
     form.append("name", name);
     form.append("description", description);
     form.append("category", category);
     form.append("price", String(price));
     form.append("discount", String(discount || 0));
-    form.append("stock", String(stock || 0));
+    form.append("stock", String(finalStock));
     form.append("size", JSON.stringify(size));
     form.append("occasion", JSON.stringify(occasion));
     images.forEach((file) => form.append("images", file));
@@ -179,31 +183,65 @@ export default function AddProductPage() {
               <label className="block mb-2 font-semibold text-gray-800">
                 Available Sizes
               </label>
-              <div className="flex flex-wrap gap-3">
-                {["XS", "S", "M", "L", "XL", "XXL"].map((s) => (
-                  <label
-                    key={s}
-                    className={`px-4 py-2 rounded-full cursor-pointer border ${
-                      size.includes(s)
-                        ? "bg-pink-600 text-white border-pink-600"
-                        : "border-pink-300 hover:bg-pink-100"
-                    } transition`}
-                  >
-                    <input
-                      type="checkbox"
-                      value={s}
-                      checked={size.includes(s)}
-                      onChange={(e) =>
-                        e.target.checked
-                          ? setSize([...size, s])
-                          : setSize(size.filter((item) => item !== s))
-                      }
-                      className="hidden"
-                    />
-                    {s}
-                  </label>
-                ))}
+              <div className="flex flex-wrap gap-3 mb-4">
+                {["XS", "S", "M", "L", "XL", "XXL"].map((s) => {
+                  const isChecked = size.some((item) => item.size === s);
+                  return (
+                    <label
+                      key={s}
+                      className={`px-4 py-2 rounded-full cursor-pointer border ${
+                        isChecked
+                          ? "bg-pink-600 text-white border-pink-600"
+                          : "border-pink-300 hover:bg-pink-100"
+                      } transition`}
+                    >
+                      <input
+                        type="checkbox"
+                        value={s}
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSize([...size, { size: s, stock: 10 }]);
+                          } else {
+                            setSize(size.filter((item) => item.size !== s));
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      {s}
+                    </label>
+                  );
+                })}
               </div>
+
+              {size.length > 0 && (
+                <div className="mt-4 p-4 border border-pink-100 rounded-xl bg-pink-50/30 space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Set Stock for Selected Sizes:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {size.map((sz) => (
+                      <div key={sz.size} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-pink-150 shadow-xs">
+                        <span className="font-bold text-gray-800 w-10 text-center">{sz.size}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={sz.stock}
+                          onChange={(e) => {
+                            const newStock = Math.max(0, parseInt(e.target.value) || 0);
+                            const updated = size.map((item) =>
+                              item.size === sz.size ? { ...item, stock: newStock } : item
+                            );
+                            setSize(updated);
+                          }}
+                          className="w-full border border-pink-200 rounded p-1 text-sm focus:ring-1 focus:ring-pink-400 focus:outline-none"
+                          placeholder="Stock"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="grid sm:grid-cols-3 gap-6">
               {/* Price */}
@@ -250,11 +288,17 @@ export default function AddProductPage() {
                 </label>
                 <input
                   type="number"
-                  value={stock}
+                  value={size.length > 0 ? size.reduce((acc, curr) => acc + curr.stock, 0) : stock}
                   onChange={(e) => setStock(Number(e.target.value))}
+                  disabled={size.length > 0}
                   placeholder="Available stock"
-                  className="w-full border border-pink-200 rounded-xl p-3 focus:ring-2 focus:ring-pink-400 focus:outline-none"
+                  className={`w-full border border-pink-200 rounded-xl p-3 focus:ring-2 focus:ring-pink-400 focus:outline-none ${
+                    size.length > 0 ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+                  }`}
                 />
+                {size.length > 0 && (
+                  <p className="text-[10px] text-gray-400 mt-1">Calculated from size stocks.</p>
+                )}
               </div>
             </div>
             {/* Image Upload */}

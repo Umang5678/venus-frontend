@@ -209,7 +209,7 @@ export default function ProductsPage() {
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
-    size: [] as string[],
+    size: [] as any[],
     price: "",
     stock: "",
   });
@@ -249,10 +249,18 @@ export default function ProductsPage() {
   const handleEdit = (product: any) => {
     setEditingProduct(product);
 
+    // Normalize sizes to { size, stock } objects.
+    const normalizedSizes = (product.size || []).map((s: any) => {
+      if (typeof s === "string") {
+        return { size: s, stock: 10 };
+      }
+      return { size: s.size, stock: typeof s.stock === "number" ? s.stock : 10 };
+    });
+
     setEditForm({
       name: product.name,
       description: product.description,
-      size: product.size || [],
+      size: normalizedSizes,
       price: product.price,
       stock: product.stock,
     });
@@ -422,26 +430,112 @@ export default function ProductsPage() {
                 />
 
                 {/* Price */}
-                <input
-                  type="number"
-                  placeholder="Price"
-                  value={editForm.price}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, price: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                />
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Price (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="Price"
+                    value={editForm.price}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, price: e.target.value })
+                    }
+                    className="w-full border p-2 rounded focus:ring-1 focus:ring-pink-400 focus:outline-none text-black"
+                  />
+                </div>
+
+                {/* Sizes and Stock */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Sizes &amp; Stock
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {["XS", "S", "M", "L", "XL", "XXL"].map((s) => {
+                      const isChecked = editForm.size.some((item: any) => item.size === s);
+                      return (
+                        <label
+                          key={s}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer border transition ${
+                            isChecked
+                              ? "bg-pink-600 text-white border-pink-600"
+                              : "border-pink-300 hover:bg-pink-100 text-gray-700"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            value={s}
+                            checked={isChecked}
+                            onChange={(e) => {
+                              let updatedSizes = [...editForm.size];
+                              if (e.target.checked) {
+                                updatedSizes.push({ size: s, stock: 10 });
+                              } else {
+                                updatedSizes = updatedSizes.filter((item: any) => item.size !== s);
+                              }
+                              const calculatedStock = updatedSizes.reduce((acc: number, curr: any) => acc + curr.stock, 0);
+                              setEditForm({
+                                ...editForm,
+                                size: updatedSizes,
+                                stock: String(calculatedStock),
+                              });
+                            }}
+                            className="hidden"
+                          />
+                          {s}
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  {editForm.size.length > 0 && (
+                    <div className="p-3 border border-pink-100 rounded-lg bg-pink-50/20 max-h-40 overflow-y-auto space-y-2">
+                      {editForm.size.map((sz: any) => (
+                        <div key={sz.size} className="flex items-center justify-between bg-white p-1.5 px-3 rounded border border-pink-100">
+                          <span className="font-bold text-gray-700 text-xs">{sz.size}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400">Stock:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={sz.stock}
+                              onChange={(e) => {
+                                const newStock = Math.max(0, parseInt(e.target.value) || 0);
+                                const updatedSizes = editForm.size.map((item: any) =>
+                                  item.size === sz.size ? { ...item, stock: newStock } : item
+                                );
+                                const calculatedStock = updatedSizes.reduce((acc: number, curr: any) => acc + curr.stock, 0);
+                                setEditForm({
+                                  ...editForm,
+                                  size: updatedSizes,
+                                  stock: String(calculatedStock),
+                                });
+                              }}
+                              className="w-16 border border-pink-200 rounded p-1 text-xs text-center focus:ring-1 focus:ring-pink-400 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* Stock */}
-                <input
-                  type="number"
-                  placeholder="Stock"
-                  value={editForm.stock}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, stock: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                />
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Total Stock (Calculated automatically if sizes selected)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Stock"
+                    value={editForm.stock}
+                    disabled={editForm.size.length > 0}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, stock: e.target.value })
+                    }
+                    className={`w-full border p-2 rounded focus:ring-1 focus:ring-pink-400 focus:outline-none text-black ${
+                      editForm.size.length > 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""
+                    }`}
+                  />
+                </div>
               </div>
 
               {/* Buttons */}

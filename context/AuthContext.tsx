@@ -1,13 +1,13 @@
 "use client";
 import React, { createContext, useState, useEffect } from "react";
-import Router from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
-
+  const router = useRouter();
   useEffect(() => {
     const t = localStorage.getItem("admin_token");
     const u = localStorage.getItem("admin_user");
@@ -20,14 +20,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("admin_user", JSON.stringify(userObj));
     setToken(tokenStr);
     setUser(userObj);
-    Router.push("/products");
+    router.push("/products");
   };
   const logout = () => {
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_user");
     setToken(null);
     setUser(null);
-    Router.push("/login");
+    router.push("/login");
   };
 
   return (
