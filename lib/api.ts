@@ -19,16 +19,12 @@
 // export default API;
 import axios from "axios";
 
-let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-if (apiBaseUrl && !apiBaseUrl.endsWith("/api") && !apiBaseUrl.endsWith("/api/")) {
-  apiBaseUrl = apiBaseUrl.endsWith("/") ? `${apiBaseUrl}api` : `${apiBaseUrl}/api`;
-}
+let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-if (!apiBaseUrl && typeof window !== "undefined") {
-  console.warn(
-    "🚨 [Venus Fashion] NEXT_PUBLIC_API_URL environment variable is missing! " +
-    "API requests will fall back to relative routing, which causes 404 errors in production."
-  );
+if (!apiBaseUrl) {
+  apiBaseUrl = "https://venus-fashion.onrender.com/api";
+} else if (!apiBaseUrl.endsWith("/api") && !apiBaseUrl.endsWith("/api/")) {
+  apiBaseUrl = apiBaseUrl.endsWith("/") ? `${apiBaseUrl}api` : `${apiBaseUrl}/api`;
 }
 
 const API = axios.create({
