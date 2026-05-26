@@ -19,8 +19,13 @@
 // export default API;
 import axios from "axios";
 
+let apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+if (apiBaseUrl && !apiBaseUrl.endsWith("/api") && !apiBaseUrl.endsWith("/api/")) {
+  apiBaseUrl = apiBaseUrl.endsWith("/") ? `${apiBaseUrl}api` : `${apiBaseUrl}/api`;
+}
+
 const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: apiBaseUrl,
   timeout: 60000,
 });
 
