@@ -34,7 +34,15 @@ export default function AdminLogin() {
         alert(data.message);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Login failed");
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        alert(
+          "Login Failed!\n\n" +
+          "The environment variable 'NEXT_PUBLIC_API_URL' is not configured in Vercel.\n" +
+          "Please set NEXT_PUBLIC_API_URL to your Express backend URL (e.g., https://your-backend-service.onrender.com) in your Vercel project settings, then redeploy."
+        );
+      } else {
+        alert(err.response?.data?.message || "Login failed");
+      }
     }
   };
 

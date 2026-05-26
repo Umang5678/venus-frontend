@@ -24,6 +24,13 @@ if (apiBaseUrl && !apiBaseUrl.endsWith("/api") && !apiBaseUrl.endsWith("/api/"))
   apiBaseUrl = apiBaseUrl.endsWith("/") ? `${apiBaseUrl}api` : `${apiBaseUrl}/api`;
 }
 
+if (!apiBaseUrl && typeof window !== "undefined") {
+  console.warn(
+    "🚨 [Venus Fashion] NEXT_PUBLIC_API_URL environment variable is missing! " +
+    "API requests will fall back to relative routing, which causes 404 errors in production."
+  );
+}
+
 const API = axios.create({
   baseURL: apiBaseUrl,
   timeout: 60000,
